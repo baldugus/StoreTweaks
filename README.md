@@ -16,7 +16,7 @@
 
 ## Contact
 
-[Discord Server](https://discord.gg/CBfamjDeCG)
+[Discord Server](https://discord.gg/CBfamjDeCG)  
 [Github](https://github.com/baldugus/StoreTweaks)
 
 ## Credits
