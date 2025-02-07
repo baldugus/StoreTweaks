@@ -14,5 +14,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Item price editing.
 - Item enabling/disabling.
 
-[unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.0.1...HEAD
-[0.0.1]: https://github.com/olivierlacan/keep-a-changelog/releases/tag/v0.0.1
+[unreleased]: https://github.com/baldugus/StoreTweaks/compare/v0.0.1...HEAD
+[0.0.1]: https://github.com/baldugus/StoreTweaks/releases/tag/v0.0.1
