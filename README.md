@@ -6,7 +6,8 @@
 
 ## Features
 
-- Change the price of the store item. **Works with modded store itemsi too!**
+- Change the price of items in the store. **Works with modded store items too!**
+  - The game needs to be launched and started once to generate the config files.
 - Enable/disable store items.
 
 ## Roadmap
