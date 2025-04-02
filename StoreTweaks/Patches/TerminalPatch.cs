@@ -18,8 +18,11 @@ public class TerminalPatch
     [HarmonyPostfix]
     private static void AwakePatch(Terminal __instance)
     {
-        var cfg = new TerminalConfig(StoreTweaks.Instance.Config, __instance.buyableItemsList.ToList());
-        _configItems = cfg.items;
+        if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer)
+        {
+            var cfg = new TerminalConfig(StoreTweaks.Instance.Config, __instance.buyableItemsList.ToList());
+            _configItems = cfg.items;
+        }
         
         var allItems = Resources.FindObjectsOfTypeAll<TerminalNode>().ToList();
         var storeNodes = allItems.FindAll(n => n.buyItemIndex >= 0);
