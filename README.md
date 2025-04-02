@@ -1,14 +1,15 @@
 # StoreTweaks
 
-### A mod that tweaks the store. You can change the store item price and disable/enable store items.
+### A mod that tweaks the store. You can change prices and disable/enable items.
 
 *Commissioned by* [**@seeya**](https://thunderstore.io/c/lethal-company/p/seechela/), *owner of the greatest modpack of all time. [**MoreBrutalLethalCompanyPlus**](https://thunderstore.io/c/lethal-company/p/seechela/MoreBrutalLethalCompanyPlus/)*
 
 ## Features
 
 - Change the price of items in the store. **Works with modded store items too!**
-  - The game needs to be launched and started once to generate the config files.
 - Enable/disable store items.
+
+Note: The game needs to be launched and started once to generate the config files.
 
 ## Roadmap
 
