@@ -13,6 +13,7 @@ public class TerminalPatch
     public static LethalNetworkVariable<Dictionary<string, (bool, int)>> _itemList = new LethalNetworkVariable<Dictionary<string, (bool, int)>>(identifier: "items");
     private static Dictionary<string, (bool, int)> _configItems = new Dictionary<string, (bool, int)>();
     private static readonly TerminalStoreHandler TerminalStoreHandler = new TerminalStoreHandler();
+    private static bool Tweaked = false;
 
     [HarmonyPatch(nameof(Terminal.Awake))]
     [HarmonyPostfix]
@@ -37,7 +38,8 @@ public class TerminalPatch
     [HarmonyPrefix]
     private static void RotateShipDecorSelectionPatch(Terminal __instance)
     {
-        StoreTweaks.Logger.LogDebug("Tweaking the terminal...");
+        if (Tweaked) { return; }
+        StoreTweaks.Logger.LogDebug("Tweaking the terminal.");
 
         if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer)
         {
@@ -58,6 +60,7 @@ public class TerminalPatch
         }
 
         __instance.buyableItemsList = TerminalStoreHandler.Render();
+        Tweaked = true;
     }
 
     [HarmonyPatch(nameof(Terminal.LoadNewNode))]
