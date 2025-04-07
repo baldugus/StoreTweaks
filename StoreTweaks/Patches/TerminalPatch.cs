@@ -28,8 +28,14 @@ public class TerminalPatch
         var allItems = Resources.FindObjectsOfTypeAll<TerminalNode>().ToList();
         var storeNodes = allItems.FindAll(n => n.buyItemIndex >= 0);
 
+        var length = __instance.buyableItemsList.Length;
         foreach (var storeNode in storeNodes)
         {
+            if (storeNode.buyItemIndex >= length)
+            {
+                StoreTweaks.Logger.LogWarning($"Item {storeNode.name} has a buyItemIndex ({storeNode.buyItemIndex}) which is out of range ({length}), skipping.");
+                continue;
+            }
             TerminalStoreHandler.Add(storeNode.buyItemIndex, __instance.buyableItemsList[storeNode.buyItemIndex], storeNode);
         }
     }
