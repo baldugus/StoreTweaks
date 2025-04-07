@@ -10,10 +10,10 @@ namespace StoreTweaks.Patches;
 [HarmonyPatch(typeof(Terminal))]
 public class TerminalPatch
 {
-    public static LethalNetworkVariable<Dictionary<string, (bool, int)>> _itemList = new LethalNetworkVariable<Dictionary<string, (bool, int)>>(identifier: "items");
-    private static Dictionary<string, (bool, int)> _configItems = new Dictionary<string, (bool, int)>();
+    private static readonly LethalNetworkVariable<Dictionary<string, ItemConfig>> _sharedItemsConfig = new LethalNetworkVariable<Dictionary<string, ItemConfig>>(identifier: "items");
+    private static Dictionary<string, ItemConfig> _itemsConfig = new Dictionary<string, ItemConfig>();
     private static readonly TerminalStoreHandler TerminalStoreHandler = new TerminalStoreHandler();
-    private static bool Tweaked = false;
+    private static bool _tweaked;
 
     [HarmonyPatch(nameof(Terminal.Awake))]
     [HarmonyPostfix]
@@ -21,64 +21,83 @@ public class TerminalPatch
     {
         if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer)
         {
+            StoreTweaks.Logger.LogInfo("I'm hosting, initializing configs.");
             var cfg = new TerminalConfig(StoreTweaks.Instance.Config, __instance.buyableItemsList.ToList());
-            _configItems = cfg.items;
+            _itemsConfig = cfg.Items;
         }
-        
-        var allItems = Resources.FindObjectsOfTypeAll<TerminalNode>().ToList();
-        var storeNodes = allItems.FindAll(n => n.buyItemIndex >= 0);
 
-        var length = __instance.buyableItemsList.Length;
-        foreach (var storeNode in storeNodes)
-        {
-            if (storeNode.buyItemIndex >= length)
-            {
-                StoreTweaks.Logger.LogWarning($"Item {storeNode.name} has a buyItemIndex ({storeNode.buyItemIndex}) which is out of range ({length}), skipping.");
-                continue;
-            }
-            TerminalStoreHandler.Add(storeNode.buyItemIndex, __instance.buyableItemsList[storeNode.buyItemIndex], storeNode);
-        }
+        var storeNodes = FindStoreNodes();
+        BuildStoreHandler(storeNodes, __instance.buyableItemsList);
     }
 
     [HarmonyPatch(nameof(Terminal.RotateShipDecorSelection))]
     [HarmonyPrefix]
     private static void RotateShipDecorSelectionPatch(Terminal __instance)
     {
-        if (Tweaked) { return; }
-        StoreTweaks.Logger.LogDebug("Tweaking the terminal.");
+        if (_tweaked) { return; }
+        StoreTweaks.Logger.LogInfo("Tweaking the terminal.");
 
         if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer)
         {
-            _itemList.Value = _configItems;
+            _sharedItemsConfig.Value = _itemsConfig;
         }
-
-        for (int i = __instance.buyableItemsList.Length - 1; i >= 0; i--)
-        {
-            var item = __instance.buyableItemsList[i];
-
-            if (!_itemList.Value.TryGetValue(item.itemName, out var itemInfo) || !itemInfo.Item1)
-            {
-                TerminalStoreHandler.Remove(i);
-                continue;
-            }
-
-            TerminalStoreHandler.UpdatePrice(i, itemInfo.Item2);
-        }
+        
+        ApplyConfig(__instance.buyableItemsList);
 
         __instance.buyableItemsList = TerminalStoreHandler.Render();
-        Tweaked = true;
+        _tweaked = true;
     }
 
     [HarmonyPatch(nameof(Terminal.LoadNewNode))]
     [HarmonyPrefix]
     private static void LoadNewNodePatch(Terminal __instance, ref TerminalNode node)
     {
-        // i'm not proud of this workaround
-        if (node.itemCost == -1)
+        // I'm not proud of this workaround
+        if (node.itemCost != -1) return;
+        StoreTweaks.Logger.LogDebug($"{node.name} is disabled, returning a parse error to the terminal.");
+        
+        // ParseError1
+        node = __instance.terminalNodes.specialNodes[10];
+    }
+
+    private static List<TerminalNode> FindStoreNodes()
+    {
+        var allNodes = Resources.FindObjectsOfTypeAll<TerminalNode>().ToList();
+        var storeNodes = allNodes.FindAll(n => n.buyItemIndex >= 0);
+        
+        return storeNodes;
+    }
+
+    private static void BuildStoreHandler(List<TerminalNode> nodes, Item[] buyableItems)
+    {
+        foreach (var node in nodes)
         {
-            StoreTweaks.Logger.LogDebug("Found a disabled item, returning error to screen");
-            // ParseError1
-            node = __instance.terminalNodes.specialNodes[10];
+            // Some mods fill the buyItemIndex even if it's not a store item for some reason.
+            if (node.buyItemIndex >= buyableItems.Length)
+            {
+                StoreTweaks.Logger.LogWarning($"Item {node.name} has a buyItemIndex ({node.buyItemIndex}) which is out of range ({buyableItems.Length}), skipping.");
+                continue;
+            }
+            TerminalStoreHandler.Add(node.buyItemIndex, buyableItems[node.buyItemIndex], node);
+        }
+    }
+
+    private static void ApplyConfig(Item[] buyableItems)
+    {
+        var cfg = _sharedItemsConfig.Value;
+        for (var i = 0; i < buyableItems.Length; i++)
+        {
+            var item = buyableItems[i];
+
+            if (!cfg.TryGetValue(item.itemName, out var itemConfig) || !itemConfig.Enabled)
+            {
+                StoreTweaks.Logger.LogDebug($"Removing item {item.name} from store.");
+                TerminalStoreHandler.Remove(i);
+                continue;
+            }
+
+            StoreTweaks.Logger.LogDebug($"Setting item {item.name} price to {itemConfig.Price}");
+            TerminalStoreHandler.UpdatePrice(i, itemConfig.Price);
         }
     }
 }

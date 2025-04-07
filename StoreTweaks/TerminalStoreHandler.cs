@@ -9,14 +9,13 @@ public class TerminalStoreHandler
 
     public void Add(int index, Item item, TerminalNode node)
     {
-        if (_items.TryGetValue(index, value: out var item1))
+        if (_items.TryGetValue(index, value: out var storeItem))
         {
-            item1.Nodes.Add(node);
+            storeItem.Nodes.Add(node);
             return;
         }
 
-        var terminalStoreItem = new TerminalStoreItem(index, item, [node]);
-        _items.Add(index, terminalStoreItem);
+        _items.Add(index, new TerminalStoreItem(item, [node]));
     }
 
     public void UpdatePrice(int index, int price)
@@ -42,26 +41,26 @@ public class TerminalStoreHandler
 
     public Item[] Render()
     {
-        var terminalStoreItems = _items.Values.ToArray();
-        var itemList = new List<Item>();
+        var storeItems = _items.Values.ToArray();
+        var buyableItems = new List<Item>();
 
-        for (var i = 0; i < terminalStoreItems.Length; i++)
+        // Recreate the buyableItemsList and reindex all nodes to match the new array.
+        for (var i = 0; i < storeItems.Length; i++)
         {
-            var item = terminalStoreItems[i];
+            var item = storeItems[i];
             foreach (var node in item.Nodes)
             {
                 node.buyItemIndex = i;
             }
-            itemList.Add(item.Item);
+            buyableItems.Add(item.Item);
         }
         
-        return itemList.ToArray();
+        return buyableItems.ToArray();
     }
 }
 
-public class TerminalStoreItem(int index, Item item, List<TerminalNode> nodes)
+public class TerminalStoreItem(Item item, List<TerminalNode> nodes)
 {
-    public int Index { get; set; } = index;
-    public Item Item { get; set; } = item;
-    public List<TerminalNode> Nodes { get; set; } = nodes;
+    public Item Item { get; } = item;
+    public List<TerminalNode> Nodes { get; } = nodes;
 }
