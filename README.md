@@ -13,8 +13,7 @@ Note: The game needs to be launched and started once to generate the config file
 
 ## Roadmap
 
-- [ ] Support discount tweaking
-- [ ] ???
+[v1 Milestone](https://github.com/baldugus/StoreTweaks/milestone/1)
 
 ## Contact
 

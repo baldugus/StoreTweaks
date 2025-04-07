@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.4] - 2025-04-07
+
+- Fix index out of bounds errors when custom assets from mods have an invalid buyItemIndex.
+
 ## [0.0.3] - 2025-04-06
 
 - Fix player joins causing array index errors in clients.
@@ -24,7 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Item price editing.
 - Item enabling/disabling.
 
-[unreleased]: https://github.com/baldugus/StoreTweaks/compare/v0.0.3...HEAD
+[unreleased]: https://github.com/baldugus/StoreTweaks/compare/v0.0.4...HEAD
+[0.0.4]: https://github.com/baldugus/StoreTweaks/releases/tag/v0.0.4
 [0.0.3]: https://github.com/baldugus/StoreTweaks/releases/tag/v0.0.3
 [0.0.2]: https://github.com/baldugus/StoreTweaks/releases/tag/v0.0.2
 [0.0.1]: https://github.com/baldugus/StoreTweaks/releases/tag/v0.0.1
