@@ -10,14 +10,18 @@ namespace StoreTweaks.Patches;
 [HarmonyPatch(typeof(Terminal))]
 public class TerminalPatch
 {
-    private static readonly LethalNetworkVariable<Dictionary<string, ItemConfig>> _sharedItemsConfig = new LethalNetworkVariable<Dictionary<string, ItemConfig>>(identifier: "items");
+    private static readonly LethalNetworkVariable<Dictionary<string, ItemConfig>> SharedItemsConfig = new LethalNetworkVariable<Dictionary<string, ItemConfig>>(identifier: "items");
     private static Dictionary<string, ItemConfig> _itemsConfig = new Dictionary<string, ItemConfig>();
-    private static readonly TerminalStoreHandler TerminalStoreHandler = new TerminalStoreHandler();
     private static bool _tweaked;
+
+    public static void Unlock()
+    {
+        _tweaked = false;
+    }
 
     [HarmonyPatch(nameof(Terminal.Awake))]
     [HarmonyPostfix]
-    private static void AwakePatch(Terminal __instance)
+    private static void Setup(Terminal __instance)
     {
         if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer)
         {
@@ -32,29 +36,31 @@ public class TerminalPatch
 
     [HarmonyPatch(nameof(Terminal.RotateShipDecorSelection))]
     [HarmonyPrefix]
-    private static void RotateShipDecorSelectionPatch(Terminal __instance)
+    // Applies store price changes in the earliest method after network stuff is done
+    private static void TweakPrices(Terminal __instance)
     {
         if (_tweaked) { return; }
         StoreTweaks.Logger.LogInfo("Tweaking the terminal.");
 
         if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer)
         {
-            _sharedItemsConfig.Value = _itemsConfig;
+            SharedItemsConfig.Value = _itemsConfig;
         }
         
         ApplyConfig(__instance.buyableItemsList);
 
-        __instance.buyableItemsList = TerminalStoreHandler.Render();
+        __instance.buyableItemsList = StorePricesHandler.Render();
+        // RotateShipDecorSelection runs every new quota, but we should patch once only
         _tweaked = true;
     }
 
     [HarmonyPatch(nameof(Terminal.LoadNewNode))]
     [HarmonyPrefix]
-    private static void LoadNewNodePatch(Terminal __instance, ref TerminalNode node)
+    private static void CheckNodeAvailability(Terminal __instance, ref TerminalNode node)
     {
         // I'm not proud of this workaround
         if (node.itemCost != -1) return;
-        StoreTweaks.Logger.LogDebug($"{node.name} is disabled, returning a parse error to the terminal.");
+        StoreTweaks.Logger.LogDebug($"{node.name} is disabled in configs, returning a parse error to the terminal.");
         
         // ParseError1
         node = __instance.terminalNodes.specialNodes[10];
@@ -72,19 +78,23 @@ public class TerminalPatch
     {
         foreach (var node in nodes)
         {
-            // Some mods fill the buyItemIndex even if it's not a store item for some reason.
+            // Some mods fill the buyItemIndex even if it's not a store item for some reason
             if (node.buyItemIndex >= buyableItems.Length)
             {
                 StoreTweaks.Logger.LogWarning($"Item {node.name} has a buyItemIndex ({node.buyItemIndex}) which is out of range ({buyableItems.Length}), skipping.");
                 continue;
             }
-            TerminalStoreHandler.Add(node.buyItemIndex, buyableItems[node.buyItemIndex], node);
+            StorePricesHandler.AddItem(node.buyItemIndex, buyableItems[node.buyItemIndex], node);
         }
+        
+        // If we want to support clients with different configs, we have to be able to revert changes so they can apply
+        // their own configs after leaving a server and hosting their own.
+        StorePricesHandler.Backup();
     }
 
     private static void ApplyConfig(Item[] buyableItems)
     {
-        var cfg = _sharedItemsConfig.Value;
+        var cfg = SharedItemsConfig.Value;
         for (var i = 0; i < buyableItems.Length; i++)
         {
             var item = buyableItems[i];
@@ -92,12 +102,12 @@ public class TerminalPatch
             if (!cfg.TryGetValue(item.itemName, out var itemConfig) || !itemConfig.Enabled)
             {
                 StoreTweaks.Logger.LogDebug($"Removing item {item.name} from store.");
-                TerminalStoreHandler.Remove(i);
+                StorePricesHandler.Remove(i);
                 continue;
             }
 
             StoreTweaks.Logger.LogDebug($"Setting item {item.name} price to {itemConfig.Price}");
-            TerminalStoreHandler.UpdatePrice(i, itemConfig.Price);
+            StorePricesHandler.UpdatePrice(i, itemConfig.Price);
         }
     }
 }
