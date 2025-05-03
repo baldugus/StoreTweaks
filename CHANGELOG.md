@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.5] - 2025-05-03
+- Fix wrong prices when client and host have different configs and a client hosts after being in another server.
+
 ## [0.0.4] - 2025-04-07
 
 - Fix index out of bounds errors when custom assets from mods have an invalid buyItemIndex.
@@ -28,7 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Item price editing.
 - Item enabling/disabling.
 
-[unreleased]: https://github.com/baldugus/StoreTweaks/compare/v0.0.4...HEAD
+[unreleased]: https://github.com/baldugus/StoreTweaks/compare/v0.0.5...HEAD
+[0.0.5]: https://github.com/baldugus/StoreTweaks/releases/tag/v0.0.5
 [0.0.4]: https://github.com/baldugus/StoreTweaks/releases/tag/v0.0.4
 [0.0.3]: https://github.com/baldugus/StoreTweaks/releases/tag/v0.0.3
 [0.0.2]: https://github.com/baldugus/StoreTweaks/releases/tag/v0.0.2
