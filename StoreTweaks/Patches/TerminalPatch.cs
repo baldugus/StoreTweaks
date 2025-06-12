@@ -33,6 +33,8 @@ public class TerminalPatch
             terminal.buyableItemsList = StorePricesHandler.Render();
             terminal.InitializeItemSalesPercentages();
             terminal.SetItemSales();
+            
+            Compatibility.ApplyMrovLibPatch(terminal);
             SharedItemsConfig.OnValueChanged -= OnConfigChanged;
         }
         SharedItemsConfig.OnValueChanged += OnConfigChanged;

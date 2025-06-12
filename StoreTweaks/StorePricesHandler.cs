@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace StoreTweaks;
 
@@ -70,19 +72,59 @@ public static class StorePricesHandler
     {
         var storeItems = items.Values.ToArray();
         var buyableItems = new List<Item>();
+        var newItems = new Dictionary<int, TerminalStoreItem>();
 
         // Recreate the buyableItemsList and reindex all nodes to match the new array.
         for (var i = 0; i < storeItems.Length; i++)
         {
             var item = storeItems[i];
+            StoreTweaks.Logger.LogDebug($"Rendering item {i}: {item.Item.itemName}");
             foreach (var node in item.Nodes)
             {
+                StoreTweaks.Logger.LogDebug($"  Before: Node {node.name} buyItemIndex: {node.buyItemIndex}");
                 node.buyItemIndex = i;
+                StoreTweaks.Logger.LogDebug($"  After: Node {node.name} buyItemIndex: {node.buyItemIndex}");
             }
             buyableItems.Add(item.Item);
+            newItems[i] = item;
+        }
+        
+        Items.Clear();
+        foreach (var (key, value) in newItems)
+        {
+            Items[key] = value;
         }
         
         return [.. buyableItems];
+    }
+
+    public static object? GetRelatedNodesForMrovLib(int index, Type relatedNodesType)
+    {
+        StoreTweaks.Logger.LogDebug($"Getting nodes for index {index}, Items count: {Items.Count}");
+        StoreTweaks.Logger.LogDebug($"Items keys: {string.Join(", ", Items.Keys)}");
+        
+        var nodes = Items[index].Nodes;
+        var relatedNodes = Activator.CreateInstance(relatedNodesType);
+        
+        var node = nodes.FirstOrDefault(node => !node.isConfirmationNode);
+        var nodeConfirm = nodes.FirstOrDefault(node => node.isConfirmationNode);
+        
+        StoreTweaks.Logger.LogDebug($"Node for {index}: {node?.name}, buyItemIndex: {node?.buyItemIndex}");
+        StoreTweaks.Logger.LogDebug($"NodeConfirm for {index}: {nodeConfirm?.name}, buyItemIndex: {nodeConfirm?.buyItemIndex}");
+        
+        if (node == null || nodeConfirm == null)
+        {
+            StoreTweaks.Logger.LogWarning($"Missing required nodes for item {index}");
+            return null;
+        }
+        
+        // Use the original nodes
+        relatedNodesType.GetProperty("Node")?.SetValue(relatedNodes, node);
+        relatedNodesType.GetProperty("NodeConfirm")?.SetValue(relatedNodes, nodeConfirm);
+        
+        StoreTweaks.Logger.LogDebug($"After setting: Node buyItemIndex: {node.buyItemIndex}, NodeConfirm buyItemIndex: {nodeConfirm.buyItemIndex}");
+        
+        return relatedNodes;
     }
 }
 
