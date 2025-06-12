@@ -14,6 +14,5 @@ public class QuickMenuManagerPatch
         StoreTweaks.Logger.LogDebug("Leaving game, reverting patch.");
         var terminal = Object.FindObjectOfType<Terminal>();
         terminal.buyableItemsList = StorePricesHandler.Restore();
-        TerminalPatch.Unlock();
     }
 }

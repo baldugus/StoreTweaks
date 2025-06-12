@@ -12,12 +12,6 @@ public class TerminalPatch
 {
     private static readonly LethalNetworkVariable<Dictionary<string, ItemConfig>> SharedItemsConfig = new LethalNetworkVariable<Dictionary<string, ItemConfig>>(identifier: "items");
     private static Dictionary<string, ItemConfig> _itemsConfig = new Dictionary<string, ItemConfig>();
-    private static bool _tweaked;
-
-    public static void Unlock()
-    {
-        _tweaked = false;
-    }
 
     [HarmonyPatch(nameof(Terminal.Awake))]
     [HarmonyPostfix]
@@ -30,28 +24,24 @@ public class TerminalPatch
             _itemsConfig = cfg.Items;
         }
 
+        var terminal = __instance;
+        void OnConfigChanged(Dictionary<string, ItemConfig> _)
+        {
+            StoreTweaks.Logger.LogDebug("SharedItemsConfig changed, applying config");
+            ApplyConfig(terminal.buyableItemsList);
+            
+            terminal.buyableItemsList = StorePricesHandler.Render();
+            SharedItemsConfig.OnValueChanged -= OnConfigChanged;
+        }
+        SharedItemsConfig.OnValueChanged += OnConfigChanged;
+
         var storeNodes = FindStoreNodes();
         BuildStoreHandler(storeNodes, __instance.buyableItemsList);
-    }
-
-    [HarmonyPatch(nameof(Terminal.RotateShipDecorSelection))]
-    [HarmonyPrefix]
-    // Applies store price changes in the earliest method after network stuff is done
-    private static void TweakPrices(Terminal __instance)
-    {
-        if (_tweaked) { return; }
-        StoreTweaks.Logger.LogInfo("Tweaking the terminal.");
 
         if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer)
         {
             SharedItemsConfig.Value = _itemsConfig;
         }
-        
-        ApplyConfig(__instance.buyableItemsList);
-
-        __instance.buyableItemsList = StorePricesHandler.Render();
-        // RotateShipDecorSelection runs every new quota, but we should patch once only
-        _tweaked = true;
     }
 
     [HarmonyPatch(nameof(Terminal.LoadNewNode))]
