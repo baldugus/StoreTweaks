@@ -6,7 +6,7 @@ namespace StoreTweaks;
 public static class StorePricesHandler
 {
     private static readonly Dictionary<int, TerminalStoreItem> Items = new Dictionary<int, TerminalStoreItem>();
-    private static Dictionary<int, TerminalStoreItem> _backup;
+    private static Dictionary<int, TerminalStoreItem>? _backup;
 
     public static void AddItem(int index, Item item, TerminalNode node)
     {
@@ -26,6 +26,8 @@ public static class StorePricesHandler
 
     public static Item[] Restore()
     {
+        if (_backup == null) return [];
+        
         foreach (var (_, item) in _backup)
         {
             item.Item.creditsWorth = item.OriginalPrice;
@@ -80,7 +82,7 @@ public static class StorePricesHandler
             buyableItems.Add(item.Item);
         }
         
-        return buyableItems.ToArray();
+        return [.. buyableItems];
     }
 }
 
