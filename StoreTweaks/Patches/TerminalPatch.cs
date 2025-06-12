@@ -31,6 +31,8 @@ public class TerminalPatch
             ApplyConfig(terminal.buyableItemsList);
             
             terminal.buyableItemsList = StorePricesHandler.Render();
+            terminal.InitializeItemSalesPercentages();
+            terminal.SetItemSales();
             SharedItemsConfig.OnValueChanged -= OnConfigChanged;
         }
         SharedItemsConfig.OnValueChanged += OnConfigChanged;
