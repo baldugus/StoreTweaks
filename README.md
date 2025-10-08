@@ -1,5 +1,15 @@
 # StoreTweaks
 
+> ⚠️ **Project Archived**
+>
+> The idea behind this was to sync configs over the network so that tampering with client-side configs wouldn’t matter, every client would always use the host’s configs, while the available options would gradually expand over time.  
+>
+> Unfortunately, my implementation turned out to be incompatible with some very relevant mods, like [darmuhsTerminalStuff](https://thunderstore.io/c/lethal-company/p/darmuh/darmuhsTerminalStuff/) (StorePlus option) and [TerminalFormatter](https://thunderstore.io/c/lethal-company/p/mrov/TerminalFormatter/).  
+>
+> While I was figuring out how to make them work together, [LunarConfig](https://thunderstore.io/c/lethal-company/p/Crafty/LunarConfig/) was released, and it basically covers all the config features I was aiming to support.  
+>
+> For that reason, this project is **no longer maintained**, and I recommend switching to **LunarConfig** instead.
+
 ### A mod that tweaks the store. You can change prices and disable/enable items.
 
 *Commissioned by* [**@seeya**](https://thunderstore.io/c/lethal-company/p/seechela/), *owner of the greatest modpack of all time. [**MoreBrutalLethalCompanyPlus**](https://thunderstore.io/c/lethal-company/p/seechela/MoreBrutalLethalCompanyPlus/)*
